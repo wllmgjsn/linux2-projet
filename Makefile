@@ -12,7 +12,7 @@ client: client.o utils.o
 server: server.o utils.o 
 	$(CC) $(CCFLAGS) -o server server.o utils.o
 
-client.o: client.c utils.h projet_config.hh
+client.o: client.c utils.h projet_config.h
 	$(CC) $(CCFLAGS) -c client.c
 
 server.o: server.c utils.h projet_config.h
