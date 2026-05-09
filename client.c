@@ -12,42 +12,39 @@
 #include "utils.h"
 #include "projet_config.h"
 
-
 int initSocketClient(char* serverIp, int serverPort){
     int socketFd = ssocket();
-
     sconnect(serverIp, serverPort, socketFd);
-
     return socketFd;
 }
 
-int main(void){
-    int socketfd = initSocketClient(SERVER_IP, SERVER_PORT);
+int main(int argc, char** argv){
+    int port = SERVER_PORT;
+    if(argc == 2) port = atoi(argv[1]);
+
+    int socketfd = initSocketClient(SERVER_IP, port);
     printf("Entrez des commandes : \n");
 
     pid_t forkID = sfork();
-    while(1){
-       
-        char commande[MAX_COMMANDE]; 
-        if(forkID != 0){ //parent
+
+    if(forkID != 0){ // père - écriture
+        char commande[MAX_COMMANDE];
+        while(1){
             int readInt = sread(0, commande, MAX_COMMANDE);
-            if(readInt == 0){
-                break;
-            }
+            if(readInt == 0) break;
             swrite(socketfd, commande, readInt);
-        }else{//fils
-            int n = sread(socketfd, commande, MAX_COMMANDE -1);
+        }
+        shutdown(socketfd, SHUT_WR);
+        waitpid(forkID, NULL, 0);
+        sclose(socketfd);
+
+    } else { // fils - lecture
+        char commande[MAX_COMMANDE];
+        while(1){
+            int n = sread(socketfd, commande, MAX_COMMANDE - 1);
+            if(n <= 0) exit(EXIT_SUCCESS);
             commande[n] = '\0';
-            printf("Reasultat de la commande : %s\n", commande);
+            printf("%s", commande);
         }
     }
-    int response = shutdown(socketfd, SHUT_RDWR);
-    
-    if(response == 0){
-        sclose(socketfd); 
-    }else{
-       int status;
-       waitpid(forkID, &status, 0);
-    }
-   
 }

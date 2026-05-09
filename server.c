@@ -6,7 +6,7 @@
 #include "projet_config.h"
 
 void sigchild_handler(int sig) {
-    while (swaitpid(-1, NULL, WNOHANG) > 0);
+    while (waitpid(-1, NULL, WNOHANG) > 0);
 }
 
 int main(int argc, char* argv[]){
