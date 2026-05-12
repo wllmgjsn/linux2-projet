@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <sys/wait.h>
+#include <errno.h>
+#include <sys/socket.h>
 
 #include "utils.h"
 #include "projet_config.h"
@@ -26,7 +28,12 @@ int main(int argc, char* argv[]){
     
     while(true){
         // Réception d'une connexion du client
-        int client_fd = saccept(server_fd);
+        int client_fd = accept(server_fd, NULL, NULL);
+        if(client_fd == -1) {
+            // deal with interruption
+            checkCond( errno != EINTR, "error accept");
+            continue;
+        }
         int childId = sfork();
         
         if(childId == 0){
